@@ -1,0 +1,65 @@
+name: AI Gallery Template Gate Validation
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  security-events: write
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+      - name: Install .NET Aspire workload
+        run: dotnet workload install aspire
+
+      - name: Get PR branch URL
+        id: get_pr_branch_url
+        run: |
+          PR_REPO_URL="https://github.com/${{ github.event.pull_request.head.repo.full_name }}"
+          PR_BRANCH_NAME=${{ github.event.pull_request.head.ref }}
+          echo "PR_REPO_URL=${PR_REPO_URL}" >> $GITHUB_ENV
+          echo "PR_BRANCH_NAME=${PR_BRANCH_NAME}" >> $GITHUB_ENV
+
+      - id: validation
+        uses: microsoft/template-validation-action@v0.0.2
+        with:
+          repositoryURL: ${{ env.PR_REPO_URL }}
+          branch: ${{ env.PR_BRANCH_NAME }}
+        env:
+          PR_BRANCH_NAME: ${{ env.PR_BRANCH_NAME }}
+          PR_REPO_URL: ${{ env.PR_REPO_URL }}
+
+      - name: Read file content
+        if: always()
+        id: read_validation_result
+        run: |
+          cat ${{ steps.validation.outputs.resultFile }}
+          FILE_CONTENT=$(cat ${{ steps.validation.outputs.resultFile }})
+          echo "validation_result<<EOF" >> $GITHUB_ENV
+          echo "$FILE_CONTENT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Post comment on PR
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: ${{ env.validation_result }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "${{ env.COMMENT_BODY }}"
