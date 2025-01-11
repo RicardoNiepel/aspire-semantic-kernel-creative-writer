@@ -24,13 +24,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install azd
-        uses: Azure/setup-azd@v2
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
-      - name: Install .NET Aspire workload
-        run: dotnet workload install aspire
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+
+      - name: Install GH CLI # Because otherwise this cannot be executed locally with `gh act`
+        uses: dev-hanz-ops/install-gh-cli-action@v0.2.0
 
       - name: Get PR branch URL
         id: get_pr_branch_url
@@ -45,6 +46,10 @@ jobs:
         with:
           repositoryURL: ${{ env.PR_REPO_URL }}
           branch: ${{ env.PR_BRANCH_NAME }}
+          topics: None
+          validateAzd: false
+          useDevContainer: false
+          securityAction: None
         env:
           PR_BRANCH_NAME: ${{ env.PR_BRANCH_NAME }}
           PR_REPO_URL: ${{ env.PR_REPO_URL }}
