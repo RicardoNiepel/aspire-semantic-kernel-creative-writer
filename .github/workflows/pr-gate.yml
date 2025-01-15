@@ -46,10 +46,7 @@ jobs:
         with:
           repositoryURL: ${{ env.PR_REPO_URL }}
           branch: ${{ env.PR_BRANCH_NAME }}
-          topics: None
-          validateAzd: false
-          useDevContainer: false
-          securityAction: None
+
         env:
           PR_BRANCH_NAME: ${{ env.PR_BRANCH_NAME }}
           PR_REPO_URL: ${{ env.PR_REPO_URL }}
