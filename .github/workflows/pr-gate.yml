@@ -42,7 +42,7 @@ jobs:
           echo "PR_BRANCH_NAME=${PR_BRANCH_NAME}" >> $GITHUB_ENV
 
       - id: validation
-        uses: microsoft/template-validation-action@v0.0.2
+        uses: microsoft/template-validation-action@v0.3.5
         with:
           repositoryURL: ${{ env.PR_REPO_URL }}
           branch: ${{ env.PR_BRANCH_NAME }}
