@@ -1,11 +1,11 @@
 # Run when commits are pushed to main
 on:
   workflow_dispatch:
-  #push:
-  # Run when commits are pushed to mainline branch (main or master)
-  # Set this to the mainline branch you are using
-  # branches:
-  #   - main
+  push:
+    # Run when commits are pushed to mainline branch (main or master)
+    # Set this to the mainline branch you are using
+    branches:
+      - main
 
 # Set up permissions for deploying with secretless Azure federated credentials
 # https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux#set-up-azure-login-with-openid-connect-authentication
@@ -27,8 +27,24 @@ jobs:
         uses: actions/checkout@v4
       - name: Install azd
         uses: Azure/setup-azd@v2
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
       - name: Install .NET Aspire workload
         run: dotnet workload install aspire
+      - name: Install .NET Aspire workload
+        run: dotnet workload install aspire
+
+      - name: Run Microsoft Security DevOps Analysis
+        uses: microsoft/security-devops-action@v1
+        id: msdo
+        with:
+          tools: templateanalyzer
+
+      - name: Upload results to Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.msdo.outputs.sarifFile }}
 
       - name: Log in with Azure (Federated Credentials)
         run: |

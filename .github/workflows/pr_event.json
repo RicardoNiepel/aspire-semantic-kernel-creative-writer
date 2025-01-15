@@ -1,0 +1,10 @@
+{
+    "pull_request": {
+        "head": {
+            "ref": "template-ci",
+            "repo": {
+                "full_name": "Azure-Samples/aspire-semantic-kernel-creative-writer"
+            }
+        }
+    }
+}
